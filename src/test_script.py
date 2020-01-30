@@ -274,11 +274,11 @@ def create_model(catcols,numcols):
     x = tf.keras.layers.Concatenate()([bert_flat_embed,cat_flat_embed, num_flat_embed])
     x = tf.keras.layers.Dropout(0.5)(x)
     x = tf.keras.layers.Dense(300, activation="relu")(x)
-    x = tf.keras.layers.Dropout(0.8)(x)
+    x = tf.keras.layers.Dropout(0.5)(x)
     x = tf.keras.layers.BatchNormalization()(x)
 
     x = tf.keras.layers.Dense(300, activation="relu")(x)
-    x = tf.keras.layers.Dropout(0.8)(x)
+    x = tf.keras.layers.Dropout(0.5)(x)
     x = tf.keras.layers.BatchNormalization()(x)
 
     y = tf.keras.layers.Dense(30, activation="sigmoid")(x)
@@ -293,7 +293,7 @@ kf = KFold(n_splits=NFOLDS,shuffle=True)
 kf.get_n_splits(train.qa_id)
 print(text_feats)
 
-EPOCHS=10
+EPOCHS=100
 BATCH_SIZE=3
 CLASS_WEIGHTS=None
 predictions = np.zeros((len(test),len(targets)))
