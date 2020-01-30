@@ -1,0 +1,21 @@
+{
+  "id": "kvsnoufal/word2vec-trial1",
+  "id_no": 7605556,
+  "title": "word2vec_trial1",
+  "code_file": "test_script.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": false,
+  "keywords": [],
+  "dataset_sources": [
+    "sandreds/googlenewsvectorsnegative300",
+    "ldm314/universalsentenceencoderlarge4",
+	"akensert/bert-base-uncased-huggingface-transformer"
+  ],
+  "kernel_sources": [],
+  "competition_sources": [
+    "google-quest-challenge"
+  ]
+}

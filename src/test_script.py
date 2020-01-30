@@ -305,7 +305,7 @@ kf.get_n_splits(train.qa_id)
 print(text_feats)
 
 rlr = callbacks.ReduceLROnPlateau( monitor='val_loss',\
-                                  factor=0.1, patience=10, verbose=0, \
+                                  factor=0.1, patience=3, verbose=0, \
                                   cooldown=0, min_lr=1e-6)
 
 EPOCHS=100
