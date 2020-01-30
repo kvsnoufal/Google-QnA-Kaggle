@@ -279,7 +279,8 @@ def create_model(catcols,numcols):
     
     x = tf.keras.layers.Concatenate()([bert_flat_embed,cat_flat_embed, num_flat_embed])
     x = tf.keras.layers.Dropout(0.5)(x)
-    x = tf.keras.layers.Dense(300, activation="relu")(x)
+    x = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(300, activation="relu"))(x)
+    
     x = tf.keras.layers.Dropout(0.5)(x)
     x = tf.keras.layers.BatchNormalization()(x)
 
