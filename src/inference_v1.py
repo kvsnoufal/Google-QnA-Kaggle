@@ -38,7 +38,7 @@ from nltk.corpus import stopwords
 from nltk import ngrams
 import nltk
 from nltk import word_tokenize,tokenize
-# import pymsteams
+
 
 train=pd.read_csv("../input/google-quest-challenge/train.csv")#.head(500)
 test=pd.read_csv("../input/google-quest-challenge/test.csv")#.head(500)
@@ -295,80 +295,3 @@ def create_model(catcols,numcols):
     # print(model.summary())
     return model
 
-
-
-
-
-NFOLDS=5
-kf = KFold(n_splits=NFOLDS,shuffle=True)
-kf.get_n_splits(train.qa_id)
-print(text_feats)
-
-rlr = callbacks.ReduceLROnPlateau( monitor='val_loss',\
-                                  factor=0.1, patience=10, verbose=0, \
-                                  cooldown=0, min_lr=1e-6)
-
-EPOCHS=100
-BATCH_SIZE=30
-CLASS_WEIGHTS=None
-predictions = np.zeros((len(test),len(targets)))
-catcols=["domain","subdomain","category"]
-numcols=["punc_t","punc_q","punc_a"]
-for train_index, test_index in kf.split(train):
-    print("Generating X train..............")
-    X_tr=compute_input_arrays(train.loc[train_index,text_feats])
-    y_tr=train.loc[train_index,targets].values
-   
-    for ls in compute_catkpis(train.loc[train_index,:]):
-        X_tr.append(ls)
-    for ls in compute_numkpis(train.loc[train_index,:]):
-        X_tr.append(ls)
-
-
-    # X_tr=np.hstack((X_tr,X_ot))
-    print("Generating X valid..............")
-    X_v=compute_input_arrays(train.loc[test_index,text_feats])
-    y_v=train.loc[test_index,targets].values
-    
-    for ls in compute_catkpis(train.loc[test_index,:]):
-        X_v.append(ls)
-    for ls in compute_numkpis(train.loc[test_index,:]):
-        X_v.append(ls)
-    
-
-    print("Generating X test..............")
-    X_test=compute_input_arrays(test.loc[:,text_feats])
-    
-    
-    for ls in compute_catkpis(test):
-        X_test.append(ls)
-    for ls in compute_numkpis(test):
-        X_test.append(ls)
-    
-
-    
-
-    for i,arr in enumerate(X_tr):
-        print(i,type(arr),arr.shape)
-
-
-    model=create_model(catcols,numcols)
-    
-    history= model.fit(
-        x=X_tr,
-        y=y_tr,
-        validation_data=(X_v,y_v),
-        epochs=EPOCHS,
-        batch_size=BATCH_SIZE,
-        class_weight=CLASS_WEIGHTS,
-        callbacks=[rlr,SpearmanRhoCallback(training_data=(X_tr,y_tr), validation_data=(X_v,y_v),
-                                       patience=5, model_name=u'best_model_batch_100epochsrlr.h5')],
-        verbose=2)
-    temp_preds=model.predict(X_test)
-    predictions+=temp_preds#/NFOLDS
-    break
-submission=pd.DataFrame(predictions,columns=targets)
-submission[ids[0]]=test[ids[0]]
-submission.to_csv("submission.csv", index = False)
-submission.head()
-# 0.33 100 epochs no rlr bert frozen
