@@ -31,13 +31,14 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report,roc_auc_score,f1_score
 from  sklearn.model_selection import KFold 
 from keras.callbacks import Callback
+from keras import callbacks
 from scipy.stats import spearmanr, rankdata
 from sklearn.preprocessing import LabelEncoder
 from nltk.corpus import stopwords
 from nltk import ngrams
 import nltk
 from nltk import word_tokenize,tokenize
-import pymsteams
+# import pymsteams
 
 train=pd.read_csv("../input/google-quest-challenge/train.csv")#.head(500)
 test=pd.read_csv("../input/google-quest-challenge/test.csv")#.head(500)
@@ -48,12 +49,17 @@ train["subdomain"]=train["question_user_page"].apply(lambda x: x.split(".")[0].r
 train["domain"]=train["question_user_page"].apply(lambda x: x.split(".")[1].replace("https://",""))
 test["subdomain"]=test["question_user_page"].apply(lambda x: x.split(".")[0].replace("https://",""))
 test["domain"]=test["question_user_page"].apply(lambda x: x.split(".")[1].replace("https://",""))
-
-def pprint(message):
-    myTeamsMessage = pymsteams.connectorcard("https://outlook.office.com/webhook/ea049498-10df-479d-8d38-b2e08be6ddcb@eee3385e-742f-4e2e-b130-e496ed7d6a49/IncomingWebhook/72392d123f1841d48cdaf5cbc6dfad4b/46285699-313e-41a1-8916-a23e741851f5")
-    myTeamsMessage.text(message)
-    myTeamsMessage.title("VM GPU log")
-    pass
+# def spman(y_val, y_pred_val):
+#     def fallback_auc(y_val, y_pred_val):
+#         rho_val = np.mean([spearmanr(y_val[:, ind], y_pred_val[:, ind] + np.random.normal(0, 1e-7, y_pred_val.shape[0])).correlation for ind in range(y_pred_val.shape[1])])
+#         return rho_val
+        
+#     return tf.py_function(fallback_auc, (y_val, y_pred_val), tf.double)
+# def pprint(message):
+#     myTeamsMessage = pymsteams.connectorcard("https://outlook.office.com/webhook/ea049498-10df-479d-8d38-b2e08be6ddcb@eee3385e-742f-4e2e-b130-e496ed7d6a49/IncomingWebhook/72392d123f1841d48cdaf5cbc6dfad4b/46285699-313e-41a1-8916-a23e741851f5")
+#     myTeamsMessage.text(message)
+#     myTeamsMessage.title("VM GPU log")
+#     pass
 
 class SpearmanRhoCallback(Callback):
     def __init__(self, training_data, validation_data, patience, model_name):
@@ -288,13 +294,18 @@ def create_model(catcols,numcols):
     model.compile(loss='binary_crossentropy', optimizer='adam')
     # print(model.summary())
     return model
-NFOLDS=3
+
+
+
+
+
+NFOLDS=5
 kf = KFold(n_splits=NFOLDS,shuffle=True)
 kf.get_n_splits(train.qa_id)
 print(text_feats)
 
 EPOCHS=100
-BATCH_SIZE=3
+BATCH_SIZE=30
 CLASS_WEIGHTS=None
 predictions = np.zeros((len(test),len(targets)))
 catcols=["domain","subdomain","category"]
@@ -347,7 +358,7 @@ for train_index, test_index in kf.split(train):
         batch_size=BATCH_SIZE,
         class_weight=CLASS_WEIGHTS,
         callbacks=[SpearmanRhoCallback(training_data=(X_tr,y_tr), validation_data=(X_v,y_v),
-                                       patience=5, model_name=u'best_model_batch.h5')],
+                                       patience=5, model_name=u'best_model_batch_FINETUNING.h5')],
         verbose=2)
     temp_preds=model.predict(X_test)
     predictions+=temp_preds#/NFOLDS
