@@ -88,7 +88,7 @@ class SpearmanRhoCallback(Callback):
             print("Epoch %05d: early stopping Threshold" % epoch)
             self.model.stop_training = True
         print('\rval_spearman-rho: %s' % (str(round(rho_val, 4))), end=100*' '+'\n')
-        pprint('\rval_spearman-rho: %s' % (str(round(rho_val, 4))))
+        # pprint('\rval_spearman-rho: %s' % (str(round(rho_val, 4))))
 
         return rho_val
 
@@ -272,13 +272,13 @@ def create_model(catcols,numcols):
     bert_flat_embed = tf.keras.layers.Flatten()(merged_bert_embeds)
     
     x = tf.keras.layers.Concatenate()([bert_flat_embed,cat_flat_embed, num_flat_embed])
-    x = tf.keras.layers.Dropout(0.3)(x)
-    x = tf.keras.layers.Dense(300, activation="relu")(x)
     x = tf.keras.layers.Dropout(0.5)(x)
+    x = tf.keras.layers.Dense(300, activation="relu")(x)
+    x = tf.keras.layers.Dropout(0.8)(x)
     x = tf.keras.layers.BatchNormalization()(x)
 
-    x = tf.keras.layers.Dense(100, activation="relu")(x)
-    x = tf.keras.layers.Dropout(0.5)(x)
+    x = tf.keras.layers.Dense(300, activation="relu")(x)
+    x = tf.keras.layers.Dropout(0.8)(x)
     x = tf.keras.layers.BatchNormalization()(x)
 
     y = tf.keras.layers.Dense(30, activation="sigmoid")(x)
@@ -293,7 +293,7 @@ kf = KFold(n_splits=NFOLDS,shuffle=True)
 kf.get_n_splits(train.qa_id)
 print(text_feats)
 
-EPOCHS=3
+EPOCHS=10
 BATCH_SIZE=3
 CLASS_WEIGHTS=None
 predictions = np.zeros((len(test),len(targets)))
