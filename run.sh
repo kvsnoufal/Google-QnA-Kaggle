@@ -1,0 +1,2 @@
+export KAGGLE_USERNAME=kvsnoufal
+export KAGGLE_KEY=e2ac13495fadc045443b79a59b883bdc
