@@ -1,5 +1,3 @@
-# 0.33  rlr100 epochs lb 0.311
-import pandas as pd
 import numpy as np
 from sklearn.model_selection import GroupKFold
 import matplotlib.pyplot as plt
@@ -241,7 +239,7 @@ def create_model(catcols,numcols):
     # pretrained model has been downloaded manually and uploaded to kaggle. 
     bert_model = TFBertModel.from_pretrained('../input/bert-base-uncased-huggingface-transformer/bert-base-uncased-tf_model.h5', config=config)
     ####ADDED BY NOUFAL#####
-    bert_model.trainable=False
+    # bert_model.trainable=False
     # if config.output_hidden_states = True, obtain hidden states via bert_model(...)[-1]
     t_embedding = bert_model(t_id, attention_mask=t_mask, token_type_ids=t_atn)[0]
     q_embedding = bert_model(q_id, attention_mask=q_mask, token_type_ids=q_atn)[0]
@@ -305,7 +303,7 @@ kf = KFold(n_splits=NFOLDS,shuffle=True)
 kf.get_n_splits(train.qa_id)
 print(text_feats)
 
-rlr = callbacks.ReduceLROnPlateau( monitor='val_loss',\
+rlr = callbacks.ReduceLROnPlateau( monitor='loss',\
                                   factor=0.1, patience=3, verbose=0, \
                                   cooldown=0, min_lr=1e-6)
 
@@ -372,3 +370,4 @@ submission=pd.DataFrame(predictions,columns=targets)
 submission[ids[0]]=test[ids[0]]
 submission.to_csv("submission.csv", index = False)
 submission.head()
+# 0.33 100 epochs no rlr bert frozen
