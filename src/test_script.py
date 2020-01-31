@@ -1,3 +1,4 @@
+# 0.33  rlr100 epochs lb 0.311
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import GroupKFold
@@ -279,8 +280,7 @@ def create_model(catcols,numcols):
     
     x = tf.keras.layers.Concatenate()([bert_flat_embed,cat_flat_embed, num_flat_embed])
     x = tf.keras.layers.Dropout(0.5)(x)
-    x = tf.keras.layers.LSTM(300,  return_sequences=True, activation="relu")(x)
-    
+    x = tf.keras.layers.Dense(300, activation="relu")(x)
     x = tf.keras.layers.Dropout(0.5)(x)
     x = tf.keras.layers.BatchNormalization()(x)
 
@@ -372,4 +372,3 @@ submission=pd.DataFrame(predictions,columns=targets)
 submission[ids[0]]=test[ids[0]]
 submission.to_csv("submission.csv", index = False)
 submission.head()
-# 0.33 100 epochs no rlr bert frozen
