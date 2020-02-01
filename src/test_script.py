@@ -1,3 +1,4 @@
+print("a")
 import numpy as np
 from sklearn.model_selection import GroupKFold
 import matplotlib.pyplot as plt
@@ -39,8 +40,8 @@ import nltk
 from nltk import word_tokenize,tokenize
 # import pymsteams
 
-train=pd.read_csv("../input/google-quest-challenge/train.csv")#.head(500)
-test=pd.read_csv("../input/google-quest-challenge/test.csv")#.head(500)
+train=pd.read_csv("../input/google-quest-challenge/train.csv").head(500)
+test=pd.read_csv("../input/google-quest-challenge/test.csv").head(500)
 
 tokenizer = BertTokenizer.from_pretrained('../input/bert-base-uncased-huggingface-transformer/bert-base-uncased-vocab.txt')
 
@@ -148,35 +149,37 @@ def _convert_to_transformer_inputs(title, question, answer, tokenizer, max_seque
         
         return [input_ids, input_masks, input_segments]
     input_ids_t, input_masks_t, input_segments_t = return_id(
-        title, None, 'longest_first', max_sequence_length)
+        title+' '+question, None, 'longest_first', max_sequence_length)
     
-    input_ids_q, input_masks_q, input_segments_q = return_id(
-        question, None, 'longest_first', max_sequence_length)
+    # input_ids_q, input_masks_q, input_segments_q = return_id(
+    #     question, None, 'longest_first', max_sequence_length)
     
     input_ids_a, input_masks_a, input_segments_a = return_id(
         answer, None, 'longest_first', max_sequence_length)
     
     return [input_ids_t, input_masks_t, input_segments_t, 
-            input_ids_q, input_masks_q, input_segments_q,
+            # input_ids_q, input_masks_q, input_segments_q,
             input_ids_a, input_masks_a, input_segments_a]
 
 def compute_input_arrays(df, columns=text_feats, tokenizer=tokenizer, max_sequence_length=max_len):
     input_ids_t, input_masks_t, input_segments_t = [], [], []
-    input_ids_q, input_masks_q, input_segments_q = [], [], []
+    # input_ids_q, input_masks_q, input_segments_q = [], [], []
     input_ids_a, input_masks_a, input_segments_a = [], [], []
     for _, instance in tqdm(df[columns].iterrows()):
         t, q, a = instance.question_title, instance.question_body, instance.answer
 
-        ids_t, masks_t, segments_t,ids_q, masks_q, segments_q, ids_a, masks_a, segments_a = \
+        # ids_t, masks_t, segments_t,ids_q, masks_q, segments_q, ids_a, masks_a, segments_a = \
+        # _convert_to_transformer_inputs(t, q, a, tokenizer, max_sequence_length)
+        ids_t, masks_t, segments_t, ids_a, masks_a, segments_a = \
         _convert_to_transformer_inputs(t, q, a, tokenizer, max_sequence_length)
         
         input_ids_t.append(ids_t)
         input_masks_t.append(masks_t)
         input_segments_t.append(segments_t)
 
-        input_ids_q.append(ids_q)
-        input_masks_q.append(masks_q)
-        input_segments_q.append(segments_q)
+        # input_ids_q.append(ids_q)
+        # input_masks_q.append(masks_q)
+        # input_segments_q.append(segments_q)
 
         input_ids_a.append(ids_a)
         input_masks_a.append(masks_a)
@@ -185,9 +188,9 @@ def compute_input_arrays(df, columns=text_feats, tokenizer=tokenizer, max_sequen
     return [np.asarray(input_ids_t, dtype=np.int32), 
                 np.asarray(input_masks_t, dtype=np.int32), 
                 np.asarray(input_segments_t, dtype=np.int32),
-                np.asarray(input_ids_q, dtype=np.int32), 
-                np.asarray(input_masks_q, dtype=np.int32), 
-                np.asarray(input_segments_q, dtype=np.int32),
+                # np.asarray(input_ids_q, dtype=np.int32), 
+                # np.asarray(input_masks_q, dtype=np.int32), 
+                # np.asarray(input_segments_q, dtype=np.int32),
                 np.asarray(input_ids_a, dtype=np.int32), 
                 np.asarray(input_masks_a, dtype=np.int32), 
                 np.asarray(input_segments_a, dtype=np.int32)]
@@ -220,15 +223,15 @@ def compute_numkpis(df):
 
 def create_model(catcols,numcols):
     t_id = tf.keras.layers.Input((max_len,), dtype=tf.int32)
-    q_id = tf.keras.layers.Input((max_len,), dtype=tf.int32)
+    # q_id = tf.keras.layers.Input((max_len,), dtype=tf.int32)
     a_id = tf.keras.layers.Input((max_len,), dtype=tf.int32)
 
     t_mask = tf.keras.layers.Input((max_len,), dtype=tf.int32)
-    q_mask = tf.keras.layers.Input((max_len,), dtype=tf.int32)
+    # q_mask = tf.keras.layers.Input((max_len,), dtype=tf.int32)
     a_mask = tf.keras.layers.Input((max_len,), dtype=tf.int32)
     
     t_atn = tf.keras.layers.Input((max_len,), dtype=tf.int32)
-    q_atn = tf.keras.layers.Input((max_len,), dtype=tf.int32)
+    # q_atn = tf.keras.layers.Input((max_len,), dtype=tf.int32)
     a_atn = tf.keras.layers.Input((max_len,), dtype=tf.int32)
     
     config = BertConfig() # print(config) to see settings
@@ -239,16 +242,16 @@ def create_model(catcols,numcols):
     # pretrained model has been downloaded manually and uploaded to kaggle. 
     bert_model = TFBertModel.from_pretrained('../input/bert-base-uncased-huggingface-transformer/bert-base-uncased-tf_model.h5', config=config)
     ####ADDED BY NOUFAL#####
-    # bert_model.trainable=False
+    #bert_model.trainable=False
     # if config.output_hidden_states = True, obtain hidden states via bert_model(...)[-1]
     t_embedding = bert_model(t_id, attention_mask=t_mask, token_type_ids=t_atn)[0]
-    q_embedding = bert_model(q_id, attention_mask=q_mask, token_type_ids=q_atn)[0]
+    # q_embedding = bert_model(q_id, attention_mask=q_mask, token_type_ids=q_atn)[0]
     a_embedding = bert_model(a_id, attention_mask=a_mask, token_type_ids=a_atn)[0]
 
 
     
     t = tf.keras.layers.GlobalAveragePooling1D()(t_embedding)
-    q = tf.keras.layers.GlobalAveragePooling1D()(q_embedding)
+    # q = tf.keras.layers.GlobalAveragePooling1D()(q_embedding)
     a = tf.keras.layers.GlobalAveragePooling1D()(a_embedding)
 
     data=train.append(test)
@@ -272,24 +275,26 @@ def create_model(catcols,numcols):
     num_spatial_dropout = tf.keras.layers.Dropout(0.3)(merged_num_inputs)
     num_flat_embed = tf.keras.layers.Flatten()(num_spatial_dropout)
     
-    merged_bert_embeds = tf.keras.layers.Concatenate()([t, q, a ])
+    # merged_bert_embeds = tf.keras.layers.Concatenate()([t, q, a ])
+    merged_bert_embeds = tf.keras.layers.Concatenate()([t,  a ])
     # bert_spatial_dropout = tf.keras.layers.SpatialDropout1D(0.3)(merged_bert_embeds)
     bert_flat_embed = tf.keras.layers.Flatten()(merged_bert_embeds)
     
     x = tf.keras.layers.Concatenate()([bert_flat_embed,cat_flat_embed, num_flat_embed])
-    x = tf.keras.layers.Dropout(0.5)(x)
-    x = tf.keras.layers.Dense(300, activation="relu")(x)
+    # x = tf.keras.layers.Dropout(0.5)(x)
+    # x = tf.keras.layers.Dense(300, activation="relu")(x)
     x = tf.keras.layers.Dropout(0.5)(x)
     x = tf.keras.layers.BatchNormalization()(x)
 
-    x = tf.keras.layers.Dense(300, activation="relu")(x)
-    x = tf.keras.layers.Dropout(0.5)(x)
-    x = tf.keras.layers.BatchNormalization()(x)
+    # x = tf.keras.layers.Dense(300, activation="relu")(x)
+    # x = tf.keras.layers.Dropout(0.5)(x)
+    # x = tf.keras.layers.BatchNormalization()(x)
 
     y = tf.keras.layers.Dense(30, activation="sigmoid")(x)
 
 
-    model = tf.keras.models.Model(inputs=[t_id, t_mask, t_atn, q_id, q_mask, q_atn, a_id, a_mask, a_atn, cat1_input, cat2_input, cat3_input, numeric_input1, numeric_input2, numeric_input3], outputs=y)
+    # model = tf.keras.models.Model(inputs=[t_id, t_mask, t_atn, q_id, q_mask, q_atn, a_id, a_mask, a_atn, cat1_input, cat2_input, cat3_input, numeric_input1, numeric_input2, numeric_input3], outputs=y)
+    model = tf.keras.models.Model(inputs=[t_id, t_mask, t_atn, a_id, a_mask, a_atn, cat1_input, cat2_input, cat3_input, numeric_input1, numeric_input2, numeric_input3], outputs=y)
     model.compile(loss='binary_crossentropy', optimizer='adam')
     # print(model.summary())
     return model
@@ -307,8 +312,8 @@ rlr = callbacks.ReduceLROnPlateau( monitor='loss',\
                                   factor=0.1, patience=3, verbose=0, \
                                   cooldown=0, min_lr=1e-6)
 
-EPOCHS=100
-BATCH_SIZE=30
+EPOCHS=10
+BATCH_SIZE=1
 CLASS_WEIGHTS=None
 predictions = np.zeros((len(test),len(targets)))
 catcols=["domain","subdomain","category"]
