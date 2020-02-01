@@ -267,14 +267,14 @@ def create_model(catcols,numcols):
     bert_flat_embed = tf.keras.layers.Flatten()(t)
     
     x = tf.keras.layers.Concatenate()([bert_flat_embed,cat_flat_embed, num_flat_embed])
-    # x = tf.keras.layers.Dropout(0.5)(x)
-    # x = tf.keras.layers.Dense(300, activation="relu")(x)
     x = tf.keras.layers.Dropout(0.5)(x)
-    x = tf.keras.layers.BatchNormalization()(x)
-
     # x = tf.keras.layers.Dense(300, activation="relu")(x)
     # x = tf.keras.layers.Dropout(0.5)(x)
     # x = tf.keras.layers.BatchNormalization()(x)
+
+    x = tf.keras.layers.Dense(300, activation="relu")(x)
+    x = tf.keras.layers.Dropout(0.5)(x)
+    x = tf.keras.layers.BatchNormalization()(x)
 
     y = tf.keras.layers.Dense(30, activation="sigmoid")(x)
 
@@ -319,8 +319,8 @@ rlr = callbacks.ReduceLROnPlateau( monitor='loss',\
                                   factor=0.1, patience=3, verbose=0, \
                                   cooldown=0, min_lr=1e-6)
 
-EPOCHS=8
-BATCH_SIZE=8
+EPOCHS=10
+BATCH_SIZE=4
 CLASS_WEIGHTS=None
 predictions = np.zeros((len(test),len(targets)))
 catcols=["domain","subdomain","category"]
